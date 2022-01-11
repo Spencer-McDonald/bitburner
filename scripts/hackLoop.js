@@ -2,15 +2,19 @@
 "use strict";
 
 export async function main(ns) {
-  const hackingLevel = ns.getHackingLevel();
+  const timeCovert = function (seconds) {
+    totalMinutes = Math.round(seconds) / 60;
+    totalSeconds = Math.round(seconds) % 60;
+    return `${totalMinutes}m ${seconds}s`;
+  };
 
-  ns.tprint(`Current hacking level: ${hackingLevel}`);
+  ns.tprint(`\n ʜᴀᴄᴋʟᴏᴏᴘ \n`);
 
   const targetArray = ns.scan();
   // ns.tprint(targetArray)
 
   for (const item of targetArray) {
-    // Information Values (Rounded are non-critical.)
+    let hackingLevel = ns.getHackingLevel();
     const serverLevel = ns.getServerRequiredHackingLevel(item);
     const hackingChance = Math.round(ns.hackAnalyzeChance(item) * 100);
     const hackingTime = Math.round(ns.getHackTime(item) / 1000);
@@ -20,7 +24,7 @@ export async function main(ns) {
         `Hacking ${item} --- ${hackingTime}s | ${hackingChance}% Chance`
       );
       ns.tprint(`-----------------------------------------------`);
-      // if not root, get.
+
       if (ns.hasRootAccess(item) == false) {
         ns.nuke(item);
         ns.tprint(`Root access granted for ${item}`);
@@ -35,9 +39,25 @@ export async function main(ns) {
           earnedMoney > 0 ? `Successful` : `Failed`
         } ${earnedMoney} earned.`
       );
+      ns.tprint(`Current hacking level: ${hackingLevel}`);
       ns.tprint(``);
     } else {
-      ns.tprint(`Hacking level too low for ${item}`);
+      ns.tprint(
+        `Hacking level (${hackingLevel}) too low for ${item}:${serverLevel}`
+      );
+      ns.tprint(
+        `Weakening target: ${item} | ${timeCovert(ns.getWeakenTime(item))}s`
+      );
+
+      while (serverLevel >= hackingLevel || ns.hackAnalyzeChance(item) < 65) {
+        await ns.weaken(item);
+        ns.tprint(`Server weakened ${ns.getServerRequiredHackingLevel(item)}`);
+        ns.tprint(
+          `Current hacking chance: ${ns.hackAnalyzeChance(
+            item
+          )}% (Will continue at < 65%)`
+        );
+      }
     }
   }
 }
